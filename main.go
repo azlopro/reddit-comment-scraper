@@ -26,8 +26,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	RunMonitor(ctx, seen, func(m MatchResult) error {
+	RunMonitor(ctx, stop, seen, func(m MatchResult) error {
 		return SendWebhook(cfg.DiscordWebhookURL, m)
+	}, func(title, desc string) error {
+		return SendInfoEmbed(cfg.DiscordWebhookURL, title, desc)
 	}, 5*time.Minute)
 
 	log.Println("Shutting down")

@@ -299,16 +299,22 @@ func pollFeed(ctx context.Context, subreddit, feedType, url string, seen *SeenSt
 
 // RunMonitor polls all subreddits on interval, calling send() for each match.
 // Errors are logged but do not stop the loop. Exits when ctx is cancelled.
+// If 5 consecutive IP-level rate limits are exhausted, notify is called and
+// stop cancels the context so the process exits cleanly.
 func RunMonitor(
 	ctx context.Context,
+	stop func(),
 	seen *SeenStore,
 	send func(MatchResult) error,
+	notify func(title, desc string) error,
 	interval time.Duration,
 ) {
 	// ipCooldown pauses all requests when Reddit throttles the IP.
 	// Per-URL backoff inside fetchFeed handles transient 429s; this handles
 	// the case where the whole IP is blocked and retries are exhausted.
 	const ipCooldown = 4 * time.Minute
+	const maxConsecutiveRL = 5
+	consecutiveRL := 0
 
 	tick := func() {
 		for _, sub := range Subreddits {
@@ -330,7 +336,20 @@ func RunMonitor(
 				if err != nil {
 					log.Printf("error polling %s feed r/%s: %v", feed.feedType, sub, err)
 					if strings.Contains(err.Error(), "429") {
-						log.Printf("IP-level rate limit detected — pausing %s before next request", ipCooldown)
+						consecutiveRL++
+						log.Printf("IP-level rate limit detected — pausing %s before next request (%d/%d consecutive)",
+							ipCooldown, consecutiveRL, maxConsecutiveRL)
+						if consecutiveRL >= maxConsecutiveRL {
+							log.Printf("5 consecutive rate limits — sending alert and shutting down")
+							if err := notify(
+								"Rate limit threshold reached",
+								"Reddit has returned 5 consecutive IP-level rate limits. The monitor is shutting down. Restart manually once Reddit access recovers.",
+							); err != nil {
+								log.Printf("warn: could not send rate-limit alert: %v", err)
+							}
+							stop()
+							return
+						}
 						select {
 						case <-ctx.Done():
 							return
@@ -339,6 +358,7 @@ func RunMonitor(
 					}
 					continue
 				}
+				consecutiveRL = 0
 				for _, m := range results {
 					log.Printf("[%s] %s match in r/%s — %q — %s",
 						PriorityLabel(m.Priority), m.Type, m.Subreddit, m.Keyword, m.URL)

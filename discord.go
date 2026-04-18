@@ -65,6 +65,30 @@ func BuildEmbed(m MatchResult) DiscordEmbed {
 	}
 }
 
+// SendInfoEmbed posts a plain informational embed (no match fields) to the webhook.
+func SendInfoEmbed(webhookURL, title, description string) error {
+	embed := DiscordEmbed{
+		Title:       title,
+		Color:       0xE67E22, // orange — warning
+		Description: description,
+		Footer:      &EmbedFooter{Text: "SmokingTracker Monitor"},
+		Timestamp:   time.Now().UTC().Format(time.RFC3339),
+	}
+	body, err := json.Marshal(WebhookPayload{Embeds: []DiscordEmbed{embed}})
+	if err != nil {
+		return fmt.Errorf("marshal info embed: %w", err)
+	}
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewReader(body)) //nolint:noctx
+	if err != nil {
+		return fmt.Errorf("post info embed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("discord webhook returned status %d", resp.StatusCode)
+	}
+	return nil
+}
+
 // SendWebhook posts a MatchResult as a Discord embed to the given webhook URL.
 // A non-2xx response is returned as an error. Transient failures are logged by
 // the caller; this function does not retry.
