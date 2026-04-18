@@ -1,0 +1,14 @@
+# Environment — never commit credentials
+.env
+
+# Compiled binary
+reddit
+
+# Runtime state — rebuilt automatically on first run
+seen.json
+seen.json.tmp
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*.swo
