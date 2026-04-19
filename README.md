@@ -18,7 +18,7 @@ A lightweight Reddit RSS watcher that sends **Discord webhook notifications** wh
 ## Setup
 
 ```bash
-git clone https://github.com/azlo-pro/reddit-monitor.git
+git clone https://github.com/azlopro/reddit-comment-scraper.git
 cd reddit-monitor
 cp .env.example .env
 # Edit .env and set DISCORD_WEBHOOK_URL

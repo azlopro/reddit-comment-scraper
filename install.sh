@@ -3,7 +3,7 @@
 # Usage: curl -fsSL https://raw.githubusercontent.com/azlopro/reddit-monitor/main/install.sh | sudo bash
 set -euo pipefail
 
-REPO="azlopro/reddit-monitor"
+REPO="azlopro/reddit-comment-scraper"
 BIN_NAME="reddit-monitor"
 INSTALL_DIR="/opt/reddit-monitor"
 CONFIG_DIR="/etc/reddit-monitor"
