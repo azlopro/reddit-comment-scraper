@@ -33,4 +33,5 @@ jobs:
           files: |
             reddit-monitor-amd64
             reddit-monitor-arm64
+            reddit-monitor.service
             checksums.txt
