@@ -1,7 +1,11 @@
 # Environment — never commit credentials
 .env
 
-# Compiled binary
+# Compiled binaries
+reddit-monitor
+reddit-monitor-amd64
+reddit-monitor-arm64
+reddit-monitor-pkg
 reddit
 
 # Runtime state — rebuilt automatically on first run
