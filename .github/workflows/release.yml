@@ -6,8 +6,6 @@ on:
 
 permissions:
   contents: write
-  pages:    write
-  id-token: write
 
 jobs:
   release:
@@ -21,54 +19,13 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Install nFPM
-        run: |
-          curl -fsSL https://github.com/goreleaser/nfpm/releases/latest/download/nfpm_amd64.deb \
-            -o /tmp/nfpm.deb && sudo dpkg -i /tmp/nfpm.deb
-
-      - name: Set version
-        run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
-
       - name: Build binaries
         run: |
           make build-amd64
           make build-arm64
 
-      - name: Package (amd64)
-        run: |
-          cp reddit-monitor-amd64 reddit-monitor-pkg
-          ARCH=amd64 nfpm package --config nfpm.yaml --packager deb \
-            --target "reddit-monitor_${VERSION}_linux_amd64.deb"
-          ARCH=amd64 nfpm package --config nfpm.yaml --packager rpm \
-            --target "reddit-monitor_${VERSION}_linux_amd64.rpm"
-          ARCH=amd64 nfpm package --config nfpm.yaml --packager archlinux \
-            --target "reddit-monitor_${VERSION}_linux_amd64.pkg.tar.zst"
-          rm reddit-monitor-pkg
-
-      - name: Package (arm64)
-        run: |
-          cp reddit-monitor-arm64 reddit-monitor-pkg
-          ARCH=arm64 nfpm package --config nfpm.yaml --packager deb \
-            --target "reddit-monitor_${VERSION}_linux_arm64.deb"
-          ARCH=arm64 nfpm package --config nfpm.yaml --packager rpm \
-            --target "reddit-monitor_${VERSION}_linux_arm64.rpm"
-          ARCH=arm64 nfpm package --config nfpm.yaml --packager archlinux \
-            --target "reddit-monitor_${VERSION}_linux_arm64.pkg.tar.zst"
-          rm reddit-monitor-pkg
-
       - name: Checksums
-        run: |
-          sha256sum \
-            reddit-monitor-amd64 \
-            reddit-monitor-arm64 \
-            reddit-monitor_${VERSION}_linux_amd64.deb \
-            reddit-monitor_${VERSION}_linux_arm64.deb \
-            reddit-monitor_${VERSION}_linux_amd64.rpm \
-            reddit-monitor_${VERSION}_linux_arm64.rpm \
-            reddit-monitor_${VERSION}_linux_amd64.pkg.tar.zst \
-            reddit-monitor_${VERSION}_linux_arm64.pkg.tar.zst \
-            reddit-monitor.service \
-            > checksums.txt
+        run: sha256sum reddit-monitor-amd64 reddit-monitor-arm64 > checksums.txt
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
@@ -76,31 +33,4 @@ jobs:
           files: |
             reddit-monitor-amd64
             reddit-monitor-arm64
-            reddit-monitor_${{ env.VERSION }}_linux_amd64.deb
-            reddit-monitor_${{ env.VERSION }}_linux_arm64.deb
-            reddit-monitor_${{ env.VERSION }}_linux_amd64.rpm
-            reddit-monitor_${{ env.VERSION }}_linux_arm64.rpm
-            reddit-monitor_${{ env.VERSION }}_linux_amd64.pkg.tar.zst
-            reddit-monitor_${{ env.VERSION }}_linux_arm64.pkg.tar.zst
-            reddit-monitor.service
             checksums.txt
-
-      - name: Build APT repo
-        run: |
-          mkdir -p apt-repo/pool apt-repo/dists/stable/main/binary-{amd64,arm64}
-          cp reddit-monitor_${VERSION}_linux_amd64.deb apt-repo/pool/
-          cp reddit-monitor_${VERSION}_linux_arm64.deb apt-repo/pool/
-          cd apt-repo
-          dpkg-scanpackages --arch amd64 pool > dists/stable/main/binary-amd64/Packages
-          dpkg-scanpackages --arch arm64 pool > dists/stable/main/binary-arm64/Packages
-          gzip -k dists/stable/main/binary-amd64/Packages
-          gzip -k dists/stable/main/binary-arm64/Packages
-          cd dists/stable && apt-ftparchive release . > Release
-
-      - name: Deploy APT repo to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir:    ./apt-repo
-          destination_dir: apt
-          keep_files: true
