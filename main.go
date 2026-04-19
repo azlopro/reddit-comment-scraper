@@ -5,9 +5,12 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 )
+
+var version = "dev" // overridden by -ldflags at build time
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lmsgprefix)
@@ -18,7 +21,13 @@ func main() {
 		log.Fatalf("config: %v\n\nCreate a .env file with:\n  DISCORD_WEBHOOK_URL=...\n", err)
 	}
 
-	seen, err := NewSeenStore("seen.json")
+	// Under systemd, STATE_DIRECTORY is set to /var/lib/reddit-monitor.
+	// Local dev falls back to the current directory.
+	stateDir := os.Getenv("STATE_DIRECTORY")
+	if stateDir == "" {
+		stateDir = "."
+	}
+	seen, err := NewSeenStore(filepath.Join(stateDir, "seen.json"))
 	if err != nil {
 		log.Fatalf("seen store: %v", err)
 	}

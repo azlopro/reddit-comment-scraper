@@ -1,4 +1,4 @@
-module github.com/azlo-pro/reddit-monitor
+module github.com/azlopro/reddit-monitor
 
 go 1.22
 

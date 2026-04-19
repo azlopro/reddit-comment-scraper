@@ -376,7 +376,7 @@ func RunMonitor(
 		}
 	}
 
-	log.Printf("Starting monitor — polling %d subreddits every %s", len(Subreddits), interval)
+	log.Printf("reddit-monitor %s — polling %d subreddits every %s", version, len(Subreddits), interval)
 	tick() // first call primes seen store; no notifications sent
 
 	ticker := time.NewTicker(interval)

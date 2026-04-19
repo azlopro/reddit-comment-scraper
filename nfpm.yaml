@@ -1,0 +1,35 @@
+name:        reddit-monitor
+arch:        ${ARCH}
+platform:    linux
+version:     ${VERSION}
+maintainer:  Azlo Pro <hello@azlo.pro>
+description: Reddit keyword monitor that sends Discord alerts for SmokingTracker.
+homepage:    https://azlo.pro
+license:     MIT
+
+contents:
+  - src: reddit-monitor-pkg
+    dst: /opt/reddit-monitor/reddit-monitor
+    file_info:
+      mode:  0755
+      owner: root
+      group: root
+
+  - src: reddit-monitor.service
+    dst: /usr/lib/systemd/system/reddit-monitor.service
+    file_info:
+      mode:  0644
+      owner: root
+      group: root
+
+  - src: packaging/env.template
+    dst: /etc/reddit-monitor/env
+    type: config|noreplace
+    file_info:
+      mode:  0600
+      owner: root
+      group: root
+
+scripts:
+  postinstall: packaging/scripts/postinstall.sh
+  preremove:   packaging/scripts/preremove.sh

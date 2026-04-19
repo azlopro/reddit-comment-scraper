@@ -1,0 +1,41 @@
+[Unit]
+Description=Reddit keyword monitor — SmokingTracker
+Documentation=https://github.com/azlopro/reddit-monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=reddit-monitor
+EnvironmentFile=/etc/reddit-monitor/env
+ExecStart=/opt/reddit-monitor/reddit-monitor
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=reddit-monitor
+
+# seen.json lives here; systemd creates and owns the directory
+StateDirectory=reddit-monitor
+StateDirectoryMode=0750
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target
