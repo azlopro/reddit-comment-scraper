@@ -169,12 +169,8 @@ main() {
   setup_user
   setup_dirs
 
-  if [ "${pm}" != "none" ] && install_package "${pm}" "${arch}" "${version}"; then
-    info "Installed via package manager (${pm})"
-  else
-    install_binary "${arch}" "${version}"
-    install_service "${version}"
-  fi
+  install_binary "${arch}" "${version}"
+  install_service "${version}"
 
   configure
   enable_service
