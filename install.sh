@@ -56,7 +56,9 @@ download_and_verify() {
   checksum_url=$(release_url "checksums.txt") || die "Could not find checksums.txt"
   curl -fsSL "${checksum_url}" -o /tmp/reddit-monitor-checksums.txt
   info "Verifying checksum"
-  grep " ${asset}$" /tmp/reddit-monitor-checksums.txt | sha256sum --check --status \
+  local expected_hash
+  expected_hash=$(grep " ${asset}$" /tmp/reddit-monitor-checksums.txt | cut -d' ' -f1)
+  echo "${expected_hash}  ${dest}" | sha256sum --check --status \
     || die "Checksum verification failed for ${asset}"
   rm -f /tmp/reddit-monitor-checksums.txt
 }
